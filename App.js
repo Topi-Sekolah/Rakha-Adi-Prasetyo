@@ -1,9 +1,12 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { MaterialIcons } from '@expo/vector-icons';
+import { View, Text, ActivityIndicator } from 'react-native';
 
+import { AuthProvider, AuthContext } from './context/AuthContext';
+import LoginScreen from './pages/LoginScreen';
 import HomeScreen from './pages/HomeScreen';
 import HistoryScreen from './pages/HistoryScreen';
 import DetailScreen from './pages/DetailScreen';
@@ -31,31 +34,69 @@ function HistoryStack() {
   );
 }
 
-export default function App() {
+// =============== TAB NAVIGATOR ===============
+function TabNavigator() {
+  return (
+    <Tab.Navigator screenOptions={{ tabBarActiveTintColor: '#0056A0', headerShown: false }}>
+      <Tab.Screen 
+        name="HomeTab" 
+        component={HomeScreen} 
+        options={{
+          tabBarLabel: 'Beranda',
+          tabBarIcon: ({ color }) => <MaterialIcons name="home" size={24} color={color} />
+        }}
+      />
+      <Tab.Screen 
+        name="HistoryTab" 
+        component={HistoryStack} 
+        options={{
+          tabBarLabel: 'Riwayat',
+          tabBarIcon: ({ color }) => <MaterialIcons name="history" size={24} color={color} />
+        }}
+      />
+    </Tab.Navigator>
+  );
+}
+
+// =============== AUTH STACK ===============
+function AuthStack() {
+  return (
+    <Stack.Navigator>
+      <Stack.Screen 
+        name="Login" 
+        component={LoginScreen} 
+        options={{ headerShown: false }}
+      />
+    </Stack.Navigator>
+  );
+}
+
+// =============== MAIN APP ===============
+function MainApp() {
+  const { userData, isLoading } = useContext(AuthContext);
+
+  if (isLoading) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" color="#0056A0" />
+        <Text style={{ marginTop: 10 }}>Loading...</Text>
+      </View>
+    );
+  }
+
   return (
     <NavigationContainer>
-      <Tab.Navigator screenOptions={{ tabBarActiveTintColor: '#0056A0', headerShown: false }}>
-        
-        <Tab.Screen 
-          name="HomeTab" 
-          component={HomeScreen} 
-          options={{
-            tabBarLabel: 'Beranda',
-            tabBarIcon: ({ color }) => <MaterialIcons name="home" size={24} color={color} />
-          }}
-        />
-
-        <Tab.Screen 
-          name="HistoryTab" 
-          component={HistoryStack} 
-          options={{
-            tabBarLabel: 'Riwayat',
-            tabBarIcon: ({ color }) => <MaterialIcons name="history" size={24} color={color} />
-          }}
-        />
-
-      </Tab.Navigator>
+      {userData ? <TabNavigator /> : <AuthStack />}
     </NavigationContainer>
+  );
+}
+
+// =============== ROOT ===============
+export default function App() {
+  return (
+    <AuthProvider>
+      <MainApp />
+    </AuthProvider>
   );
 }
 
